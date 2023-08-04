@@ -1,8 +1,8 @@
 ﻿namespace MonkeyFinder.View;
 
-public partial class MainPage : ContentPage
+public partial class MonkeysPage : ContentPage
 {
-	public MainPage()
+	public MonkeysPage()
 	{
 		InitializeComponent();
 	}

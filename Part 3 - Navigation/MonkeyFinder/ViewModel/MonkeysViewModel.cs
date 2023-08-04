@@ -4,13 +4,15 @@ namespace MonkeyFinder.ViewModel;
 
 public partial class MonkeysViewModel : BaseViewModel
 {
-    public ObservableCollection<Monkey> Monkeys { get; } = new();
-    MonkeyService monkeyService;
+    private readonly MonkeyService _monkeyService;
+
     public MonkeysViewModel(MonkeyService monkeyService)
     {
         Title = "Monkey Finder";
-        this.monkeyService = monkeyService;
+        _monkeyService = monkeyService;
     }
+
+    public ObservableCollection<Monkey> Monkeys { get; } = new();
 
     [RelayCommand]
     async Task GetMonkeysAsync()
@@ -21,7 +23,7 @@ public partial class MonkeysViewModel : BaseViewModel
         try
         {
             IsBusy = true;
-            var monkeys = await monkeyService.GetMonkeys();
+            var monkeys = await _monkeyService.GetMonkeys();
 
             if(Monkeys.Count != 0)
                 Monkeys.Clear();

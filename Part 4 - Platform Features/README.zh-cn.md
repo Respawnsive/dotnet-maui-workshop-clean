@@ -9,12 +9,12 @@
 1. 首先，让我们访问 .NET MAUI 中的“IConnectivity”。 让我们将 `IConnectivity` 注入到 `MonkeysViewModel` 构造函数中：
 
     ```csharp
-    IConnectivity connectivity;
+    private readonly IConnectivity _connectivity;
     public MonkeysViewModel(MonkeyService monkeyService, IConnectivity connectivity)
     {
         Title = "Monkey Finder";
-        this.monkeyService = monkeyService;
-        this.connectivity = connectivity;
+        _monkeyService = monkeyService;
+        _connectivity = connectivity;
     }
     ```
 
@@ -32,7 +32,7 @@
 
 
     ```csharp
-    if (connectivity.NetworkAccess != NetworkAccess.Internet)
+    if (_connectivity.NetworkAccess != NetworkAccess.Internet)
     {
         await Shell.Current.DisplayAlert("No connectivity!",
             $"Please check internet and try again.", "OK");
@@ -49,14 +49,14 @@
 1. 首先，让我们访问 .NET MAUI 中的“IGeolocator”。 让我们将 `IGeolocator` 注入到 `MonkeysViewModel` 构造函数中：
 
     ```csharp
-    IConnectivity connectivity;
-    IGeolocation geolocation;
+    private readonly IConnectivity _connectivity;
+    private readonly IGeolocation _geolocation;
     public MonkeysViewModel(MonkeyService monkeyService, IConnectivity connectivity, IGeolocation geolocation)
     {
         Title = "Monkey Finder";
-        this.monkeyService = monkeyService;
-        this.connectivity = connectivity;
-        this.geolocation = geolocation;
+        _monkeyService = monkeyService;
+        _connectivity = connectivity;
+        _geolocation = geolocation;
     }
     ```
 
@@ -82,10 +82,10 @@
         try
         {
             // Get cached location, else get real location.
-            var location = await geolocation.GetLastKnownLocationAsync();
+            var location = await _geolocation.GetLastKnownLocationAsync();
             if (location == null)
             {
-                location = await geolocation.GetLocationAsync(new GeolocationRequest
+                location = await _geolocation.GetLocationAsync(new GeolocationRequest
                 {
                     DesiredAccuracy = GeolocationAccuracy.Medium,
                     Timeout = TimeSpan.FromSeconds(30)
@@ -109,7 +109,7 @@
     }
     ```
 
-4. 回到我们的`MainPage.xaml`，我们可以添加另一个`Button`来调用这个新方法：
+4. 回到我们的`MonkeysPage.xaml`，我们可以添加另一个`Button`来调用这个新方法：
 
      在“搜索”按钮下添加以下 XAML。
 
@@ -140,10 +140,10 @@
 1. 将 `IMap` 注入到我们的 `Monkey Details ViewModel` 中：
 
     ```csharp
-    IMap map;
+    private readonly IMap _map;
     public MonkeyDetailsViewModel(IMap map)
     {
-        this.map = map;
+        _map = map;
     }
     ```
 
@@ -155,7 +155,7 @@
     {
         try
         {
-            await map.OpenAsync(Monkey.Latitude, Monkey.Longitude, new MapLaunchOptions
+            await _map.OpenAsync(Monkey.Latitude, Monkey.Longitude, new MapLaunchOptions
             {
                 Name = Monkey.Name,
                 NavigationMode = NavigationMode.None
@@ -170,7 +170,7 @@
 
     ```
 
-### 更新 DetailsPage.xaml UI
+### 更新 MonkeyDetailsPage.xaml UI
 
 在猴子的名字上方，让我们添加一个调用 `OpenMapCommand` 的按钮。
 
@@ -191,7 +191,7 @@
 
 除了访问跨平台设备 API，.NET MAUI 还包括特定于平台的集成。 如果您一直在带有凹槽的 iOS 设备上运行 Monkey Finder 应用程序，您可能已经注意到底部的按钮与设备底部的栏重叠。 iOS 有安全区域的概念，您必须以编程方式设置它。 但是，由于平台的特殊性，您可以直接在 XAML 中设置它们。
 
-1. 打开 `MainPage.xaml` 并为 iOS 细节添加一个新的命名空间：
+1. 打开 `MonkeysPage.xaml` 并为 iOS 细节添加一个新的命名空间：
 
     ```xml
     xmlns:ios="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;assembly=Microsoft.Maui.Controls"

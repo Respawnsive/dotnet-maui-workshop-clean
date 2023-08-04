@@ -11,12 +11,12 @@ We can easily check to see if our user is connected to the internet with the bui
 1. First, let's get access to the `IConnectivity` found inside of .NET MAUI. Let's inject `IConnectivity` into our `MonkeysViewModel` constructor:
 
     ```csharp
-    IConnectivity connectivity;
+    private readonly IConnectivity _connectivity;
     public MonkeysViewModel(MonkeyService monkeyService, IConnectivity connectivity)
     {
         Title = "Monkey Finder";
-        this.monkeyService = monkeyService;
-        this.connectivity = connectivity;
+        _monkeyService = monkeyService;
+        _connectivity = connectivity;
     }
     ```
 
@@ -34,7 +34,7 @@ We can easily check to see if our user is connected to the internet with the bui
 1. Now, let's check for internet inside of the `GetMonkeysAsync` method and display an alert if offline.
 
     ```csharp
-    if (connectivity.NetworkAccess != NetworkAccess.Internet)
+    if (_connectivity.NetworkAccess != NetworkAccess.Internet)
     {
         await Shell.Current.DisplayAlert("No connectivity!",
             $"Please check internet and try again.", "OK");
@@ -52,14 +52,14 @@ We can add more functionality to this page using the GPS of the device since eac
 1. First, let's get access to the `IGeolocator` found inside of .NET MAUI. Let's inject `IGeolocator` into our `MonkeysViewModel` constructor:
 
     ```csharp
-    IConnectivity connectivity;
-    IGeolocation geolocation;
+    private readonly IConnectivity _connectivity;
+    private readonly IGeolocation _geolocation;
     public MonkeysViewModel(MonkeyService monkeyService, IConnectivity connectivity, IGeolocation geolocation)
     {
         Title = "Monkey Finder";
-        this.monkeyService = monkeyService;
-        this.connectivity = connectivity;
-        this.geolocation = geolocation;
+        _monkeyService = monkeyService;
+        _connectivity = connectivity;
+        _geolocation = geolocation;
     }
     ```
 
@@ -86,10 +86,10 @@ We can add more functionality to this page using the GPS of the device since eac
         try
         {
             // Get cached location, else get real location.
-            var location = await geolocation.GetLastKnownLocationAsync();
+            var location = await _geolocation.GetLastKnownLocationAsync();
             if (location == null)
             {
-                location = await geolocation.GetLocationAsync(new GeolocationRequest
+                location = await _geolocation.GetLocationAsync(new GeolocationRequest
                 {
                     DesiredAccuracy = GeolocationAccuracy.Medium,
                     Timeout = TimeSpan.FromSeconds(30)
@@ -114,7 +114,7 @@ We can add more functionality to this page using the GPS of the device since eac
     ```
 
 
-1. Back in our `MainPage.xaml` we can add another `Button` that will call this new method:
+1. Back in our `MonkeysPage.xaml` we can add another `Button` that will call this new method:
 
     Add the following XAML under the Search button.
 
@@ -144,10 +144,10 @@ This project is pre-configured with all required permissions and features needed
 1. Inject `IMap` into our `MonkeyDetailsViewModel`:
 
     ```csharp
-    IMap map;
+    private readonly IMap _map;
     public MonkeyDetailsViewModel(IMap map)
     {
-        this.map = map;
+        _map = map;
     }
     ```
 
@@ -159,7 +159,7 @@ This project is pre-configured with all required permissions and features needed
     {
         try
         {
-            await map.OpenAsync(Monkey.Latitude, Monkey.Longitude, new MapLaunchOptions
+            await _map.OpenAsync(Monkey.Latitude, Monkey.Longitude, new MapLaunchOptions
             {
                 Name = Monkey.Name,
                 NavigationMode = NavigationMode.None
@@ -174,7 +174,7 @@ This project is pre-configured with all required permissions and features needed
 
     ```
 
-### Update DetailsPage.xaml UI
+### Update MonkeyDetailsPage.xaml UI
 
 
 Above the monkey's name, let's add a button that calls the `OpenMapCommand`.
@@ -197,7 +197,7 @@ Run the application, navigate to a monkey, and then press Show on Map to launch 
 
 In addition to accessing cross-platform device APIs, .NET MAUI also includes platform specific integrations. If you have been running the Monkey Finder app on an iOS device with a notch, you may have noticed that the buttons on the bottom overlap the bar on the bottom of the device. iOS has the concept of Safe Areas and you must progmatically set this. However, thanks to platform specifics, you can set them directly in the XAML.
 
-1. Open `MainPage.xaml` and add a new namespace for iOS specifics:
+1. Open `MonkeysPage.xaml` and add a new namespace for iOS specifics:
 
     ```xml
     xmlns:ios="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;assembly=Microsoft.Maui.Controls"

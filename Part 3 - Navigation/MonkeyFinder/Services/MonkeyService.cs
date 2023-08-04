@@ -1,34 +1,35 @@
-﻿using System.Net.Http.Json;
+﻿using System.Collections.Generic;
+using System.Net.Http.Json;
 
 namespace MonkeyFinder.Services;
 
 public class MonkeyService
 {
-    HttpClient httpClient;
+    readonly HttpClient _httpClient;
     public MonkeyService()
     {
-        this.httpClient = new HttpClient();
+        _httpClient = new HttpClient();
     }
 
-    List<Monkey> monkeyList;
+    private List<Monkey> _monkeyList;
     public async Task<List<Monkey>> GetMonkeys()
     {
-        if (monkeyList?.Count > 0)
-            return monkeyList;
+        if (_monkeyList?.Count > 0)
+            return _monkeyList;
 
         // Online
-        var response = await httpClient.GetAsync("https://www.montemagno.com/monkeys.json");
+        var response = await _httpClient.GetAsync("https://www.montemagno.com/monkeys.json");
         if (response.IsSuccessStatusCode)
         {
-            monkeyList = await response.Content.ReadFromJsonAsync(MonkeyContext.Default.ListMonkey);
+            _monkeyList = await response.Content.ReadFromJsonAsync(MonkeyContext.Default.ListMonkey);
         }
 
         // Offline
         /*using var stream = await FileSystem.OpenAppPackageFileAsync("monkeydata.json");
         using var reader = new StreamReader(stream);
         var contents = await reader.ReadToEndAsync();
-        monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonkey);*/
+        _monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonkey);*/
 
-        return monkeyList;
+        return _monkeyList;
     }
 }

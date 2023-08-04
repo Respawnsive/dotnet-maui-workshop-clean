@@ -5,15 +5,15 @@ namespace MonkeyFinder.ViewModel;
 public partial class MonkeysViewModel : BaseViewModel
 {
     public ObservableCollection<Monkey> Monkeys { get; } = new();
-    MonkeyService monkeyService;
-    IConnectivity connectivity;
-    IGeolocation geolocation;
+    private readonly MonkeyService _monkeyService;
+    private readonly IConnectivity _connectivity;
+    private readonly IGeolocation _geolocation;
     public MonkeysViewModel(MonkeyService monkeyService, IConnectivity connectivity, IGeolocation geolocation)
     {
         Title = "Monkey Finder";
-        this.monkeyService = monkeyService;
-        this.connectivity = connectivity;
-        this.geolocation = geolocation;
+        _monkeyService = monkeyService;
+        _connectivity = connectivity;
+        _geolocation = geolocation;
     }
 
     [ObservableProperty]
@@ -27,7 +27,7 @@ public partial class MonkeysViewModel : BaseViewModel
 
         try
         {
-            if (connectivity.NetworkAccess != NetworkAccess.Internet)
+            if (_connectivity.NetworkAccess != NetworkAccess.Internet)
             {
                 await Shell.Current.DisplayAlert("No connectivity!",
                     $"Please check internet and try again.", "OK");
@@ -35,7 +35,7 @@ public partial class MonkeysViewModel : BaseViewModel
             }
 
             IsBusy = true;
-            var monkeys = await monkeyService.GetMonkeys();
+            var monkeys = await _monkeyService.GetMonkeys();
 
             if(Monkeys.Count != 0)
                 Monkeys.Clear();
@@ -63,7 +63,7 @@ public partial class MonkeysViewModel : BaseViewModel
         if (monkey == null)
         return;
 
-        await Shell.Current.GoToAsync(nameof(DetailsPage), true, new Dictionary<string, object>
+        await Shell.Current.GoToAsync(nameof(MonkeyDetailsPage), true, new Dictionary<string, object>
         {
             {"Monkey", monkey }
         });
@@ -78,10 +78,10 @@ public partial class MonkeysViewModel : BaseViewModel
         try
         {
             // Get cached location, else get real location.
-            var location = await geolocation.GetLastKnownLocationAsync();
+            var location = await _geolocation.GetLastKnownLocationAsync();
             if (location == null)
             {
-                location = await geolocation.GetLocationAsync(new GeolocationRequest
+                location = await _geolocation.GetLocationAsync(new GeolocationRequest
                 {
                     DesiredAccuracy = GeolocationAccuracy.Medium,
                     Timeout = TimeSpan.FromSeconds(30)

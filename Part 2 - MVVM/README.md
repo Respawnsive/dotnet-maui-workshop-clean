@@ -184,10 +184,10 @@ We are ready to create a method that will retrieve the monkey data from the inte
 1. Inside of the `MonkeyService.cs`, let's add a new method to get all Monkeys:
 
     ```csharp
-    List<Monkey> monkeyList = new ();
+    private List<Monkey> _monkeyList = new ();
     public async Task<List<Monkey>> GetMonkeys()
     {
-        return monkeyList;
+        return _monkeyList;
     }
     ```
 
@@ -196,10 +196,10 @@ We are ready to create a method that will retrieve the monkey data from the inte
 1. Let's get access to an `HttpClient` by added into the contructor for the `MonkeyService`.
 
     ```csharp
-     HttpClient httpClient;
+     private readonly HttpClient _httpClient;
     public MonkeyService()
     {
-        this.httpClient = new HttpClient();
+        _httpClient = new HttpClient();
     }
     ```
 
@@ -208,21 +208,20 @@ We are ready to create a method that will retrieve the monkey data from the inte
 1. Let's check to see if we have any monkeys in the list and return it if so by filling in the `GetMonkeys` method:
 
     ```csharp
-    if (monkeyList?.Count > 0)
-        return monkeyList;
+    if (_monkeyList?.Count > 0)
+        return _monkeyList;
     ```
 
 1. We can use the `HttpClient` to make a web request and parse it using the built in `System.Text.Json` deserialization.
 
     ```csharp
-    var response = await httpClient.GetAsync("https://www.montemagno.com/monkeys.json");
+    var response = await _httpClient.GetAsync("https://www.montemagno.com/monkeys.json");
 
     if (response.IsSuccessStatusCode)
     {
-        monkeyList = await response.Content.ReadFromJsonAsync(MonkeyContext.Default.ListMonkey);
+        _monkeyList = await response.Content.ReadFromJsonAsync(MonkeyContext.Default.ListMonkey);
     }
     
-    return monkeyList;
     ```
 
 1. Add the following using directive at the top of the file to access the `ReadFromJsonAsync` extension method:
@@ -239,7 +238,7 @@ If you have internet issues in your current setup don't worry as we have embedde
 using var stream = await FileSystem.OpenAppPackageFileAsync("monkeydata.json");
 using var reader = new StreamReader(stream);
 var contents = await reader.ReadToEndAsync();
-monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonkey);
+_monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonkey);
 ```
 
 
@@ -272,11 +271,11 @@ We will use an `ObservableCollection<Monkey>` that will be cleared and then load
 
     ```csharp
     public ObservableCollection<Monkey> Monkeys { get; } = new();
-    MonkeyService monkeyService;
+    private readonly MonkeyService _monkeyService;
     public MonkeysViewModel(MonkeyService monkeyService)
     {
         Title = "Monkey Finder";
-        this.monkeyService = monkeyService;
+        _monkeyService = monkeyService;
     }
     ```
 
@@ -339,7 +338,7 @@ We will use an `ObservableCollection<Monkey>` that will be cleared and then load
         {
             IsBusy = true;
 
-            var monkeys = await monkeyService.GetMonkeys();
+            var monkeys = await _monkeyService.GetMonkeys();
         }
         //... 
     }
@@ -355,7 +354,7 @@ We will use an `ObservableCollection<Monkey>` that will be cleared and then load
         {
             IsBusy = true;
 
-            var monkeys = await monkeyService.GetMonkeys();
+            var monkeys = await _monkeyService.GetMonkeys();
 
             if(Monkeys.Count != 0)
                 Monkeys.Clear();
@@ -393,7 +392,7 @@ We will use an `ObservableCollection<Monkey>` that will be cleared and then load
         try
         {
             IsBusy = true;
-            var monkeys = await monkeyService.GetMonkeys();
+            var monkeys = await _monkeyService.GetMonkeys();
 
             if(Monkeys.Count != 0)
                 Monkeys.Clear();
@@ -470,7 +469,7 @@ Before we can run the app, we must register all of our dependencies. Open the `M
 	using MonkeyFinder.Services;
 	```
 
-1. Find where we are  registering our `MainPage` with `builder.Services` and add the following above it:
+1. Find where we are  registering our `MonkeysPage` with `builder.Services` and add the following above it:
 	```csharp
 	builder.Services.AddSingleton<MonkeyService>();
 	builder.Services.AddSingleton<MonkeysViewModel>();
@@ -479,10 +478,10 @@ Before we can run the app, we must register all of our dependencies. Open the `M
 We are registering the `MonkeyService` and `MonkeysViewModel` as singletons. This means they will only be created once, if we wanted a unique instance to be created each request we would register them as `Transient`.
 
 
-1. In the code behind for the project we will inject our `MonkeysViewModel` into our MainPage:
+1. In the code behind for the project we will inject our `MonkeysViewModel` into our `MonkeysPage`:
 
     ```csharp
-    public MainPage(MonkeysViewModel viewModel)
+    public MonkeysPage(MonkeysViewModel viewModel)
     {
 	InitializeComponent();
 	BindingContext = viewModel;
@@ -490,17 +489,17 @@ We are registering the `MonkeyService` and `MonkeysViewModel` as singletons. Thi
     ```
 
 ## Build The Monkeys User Interface
-It is now time to build the .NET MAUI user interface in `View/MainPage.xaml`. Our end result is to build a page that looks like this:
+It is now time to build the .NET MAUI user interface in `View/MonkeysPage.xaml`. Our end result is to build a page that looks like this:
 
 ![](../Art/FinalUI.PNG)
 
-1. In `MainPage.xaml`, add a `xmlns:viewmodel` namespace and a `x:DataType` at the top of the `ContentPage` tag, which will enable us to get binding intellisense:
+1. In `MonkeysPage.xaml`, add a `xmlns:viewmodel` namespace and a `x:DataType` at the top of the `ContentPage` tag, which will enable us to get binding intellisense:
 
     ```xml
     <ContentPage
         xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
         xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
-        x:Class="MonkeyFinder.View.MainPage"
+        x:Class="MonkeyFinder.View.MonkeysPage"
         xmlns:model="clr-namespace:MonkeyFinder.Model"
         xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
         x:DataType="viewmodel:MonkeysViewModel">
@@ -516,7 +515,7 @@ It is now time to build the .NET MAUI user interface in `View/MainPage.xaml`. Ou
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="MonkeyFinder.View.MainPage"
+    x:Class="MonkeyFinder.View.MonkeysPage"
     xmlns:model="clr-namespace:MonkeyFinder.Model"
     xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
     x:DataType="viewmodel:MonkeysViewModel"
@@ -525,13 +524,13 @@ It is now time to build the .NET MAUI user interface in `View/MainPage.xaml`. Ou
 </ContentPage>
 ```
 
-1. In the `MainPage.xaml`, we can add a `Grid` between the `ContentPage` tags with 2 rows and 2 columns. We will also set the `RowSpacing` and `ColumnSpacing` to
+1. In the `MonkeysPage.xaml`, we can add a `Grid` between the `ContentPage` tags with 2 rows and 2 columns. We will also set the `RowSpacing` and `ColumnSpacing` to
 
 ```xml
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="MonkeyFinder.View.MainPage"
+    x:Class="MonkeyFinder.View.MonkeysPage"
     xmlns:model="clr-namespace:MonkeyFinder.Model"
     xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
     x:DataType="viewmodel:MonkeysViewModel"
@@ -547,13 +546,13 @@ It is now time to build the .NET MAUI user interface in `View/MainPage.xaml`. Ou
 </ContentPage>
 ```
 
-1. In the `MainPage.xaml`, we can add a `CollectionView` between the `Grid` tags that spans 2 Columns. We will also set the `ItemsSource` which will bind to our `Monkeys` ObservableCollection and additionally set a few properties for optimizing the list.
+1. In the `MonkeysPage.xaml`, we can add a `CollectionView` between the `Grid` tags that spans 2 Columns. We will also set the `ItemsSource` which will bind to our `Monkeys` ObservableCollection and additionally set a few properties for optimizing the list.
 
 ```xml
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="MonkeyFinder.View.MainPage"
+    x:Class="MonkeyFinder.View.MonkeysPage"
     xmlns:model="clr-namespace:MonkeyFinder.Model"
     xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
     x:DataType="viewmodel:MonkeysViewModel"
@@ -574,13 +573,13 @@ It is now time to build the .NET MAUI user interface in `View/MainPage.xaml`. Ou
 </ContentPage>
 ```
 
-1. In the `MainPage.xaml`, we can add a `ItemTemplate` to our `CollectionView` that will represent what each item in the list displays:
+1. In the `MonkeysPage.xaml`, we can add a `ItemTemplate` to our `CollectionView` that will represent what each item in the list displays:
 
 ```xml
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="MonkeyFinder.View.MainPage"
+    x:Class="MonkeyFinder.View.MonkeysPage"
     xmlns:model="clr-namespace:MonkeyFinder.Model"
     xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
     x:DataType="viewmodel:MonkeysViewModel"
@@ -619,13 +618,13 @@ It is now time to build the .NET MAUI user interface in `View/MainPage.xaml`. Ou
 </ContentPage>
 ```
 
-1. In the `MainPage.xaml`, we can add a `Button` under our `CollectionView` that will enable us to click it and get the monkeys from the server:
+1. In the `MonkeysPage.xaml`, we can add a `Button` under our `CollectionView` that will enable us to click it and get the monkeys from the server:
 
 ```xml
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="MonkeyFinder.View.MainPage"
+    x:Class="MonkeyFinder.View.MonkeysPage"
     xmlns:model="clr-namespace:MonkeyFinder.Model"
     xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
     x:DataType="viewmodel:MonkeysViewModel"
@@ -674,13 +673,13 @@ It is now time to build the .NET MAUI user interface in `View/MainPage.xaml`. Ou
 ```
 
 
-1. Finally, In the `MainPage.xaml`, we can add a `ActivityIndicator` above all of our controls at the very bottom or `Grid` that will show an indication that something is happening when we press the `Get Monkeys` button.
+1. Finally, In the `MonkeysPage.xaml`, we can add a `ActivityIndicator` above all of our controls at the very bottom or `Grid` that will show an indication that something is happening when we press the `Get Monkeys` button.
 
 ```xml
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="MonkeyFinder.View.MainPage"
+    x:Class="MonkeyFinder.View.MonkeysPage"
     xmlns:model="clr-namespace:MonkeyFinder.Model"
     xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
     x:DataType="viewmodel:MonkeysViewModel"

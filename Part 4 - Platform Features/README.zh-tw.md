@@ -9,12 +9,12 @@
 1. 首先，在先前設計的 `MonkeysViewModel` 類別當中，新增一個型態為 `IConnectivity` 的 `connectivity` 欄位，並透過改寫 `MonkeysViewModel` 建構式，透過建構式注入的方式設定此 `connectivity` 欄位：
 
     ```csharp
-    IConnectivity connectivity;
+    private readonly IConnectivity _connectivity;
     public MonkeysViewModel(MonkeyService monkeyService, IConnectivity connectivity)
     {
         Title = "Monkey Finder";
-        this.monkeyService = monkeyService;
-        this.connectivity = connectivity;
+        _monkeyService = monkeyService;
+        _connectivity = connectivity;
     }
     ```
 
@@ -35,7 +35,7 @@
 
 
     ```csharp
-    if (connectivity.NetworkAccess != NetworkAccess.Internet)
+    if (_connectivity.NetworkAccess != NetworkAccess.Internet)
     {
         await Shell.Current.DisplayAlert("No connectivity!",
             $"Please check internet and try again.", "OK");
@@ -53,14 +53,14 @@
 1. 在先前設計的 `MonkeysViewModel` 類別當中，新增一個型態為 `IGeolocation` 的 `geolocation` 欄位，並透過改寫 `MonkeysViewModel` 建構式，透過建構式注入的方式設定此 `geolocation` 欄位：
 
     ```csharp
-    IConnectivity connectivity;
-    IGeolocation geolocation;
+    private readonly IConnectivity _connectivity;
+    private readonly IGeolocation _geolocation;
     public MonkeysViewModel(MonkeyService monkeyService, IConnectivity connectivity, IGeolocation geolocation)
     {
         Title = "Monkey Finder";
-        this.monkeyService = monkeyService;
-        this.connectivity = connectivity;
-        this.geolocation = geolocation;
+        _monkeyService = monkeyService;
+        _connectivity = connectivity;
+        _geolocation = geolocation;
     }
     ```
 
@@ -86,10 +86,10 @@
         try
         {
             // Get cached location, else get real location.
-            var location = await geolocation.GetLastKnownLocationAsync();
+            var location = await _geolocation.GetLastKnownLocationAsync();
             if (location == null)
             {
-                location = await geolocation.GetLocationAsync(new GeolocationRequest
+                location = await _geolocation.GetLocationAsync(new GeolocationRequest
                 {
                     DesiredAccuracy = GeolocationAccuracy.Medium,
                     Timeout = TimeSpan.FromSeconds(30)
@@ -113,7 +113,7 @@
     }
     ```
 
-4. 回到 `MainPage.xaml` 的畫面設計中增加一個 `Button`，並且透過此 `Command` 設定其繫結來呼叫前一個步驟所設計的找尋距離最近的猴子資料方法：
+4. 回到 `MonkeysPage.xaml` 的畫面設計中增加一個 `Button`，並且透過此 `Command` 設定其繫結來呼叫前一個步驟所設計的找尋距離最近的猴子資料方法：
 
     在先前的 `Search` 按鈕的 XAML 標記下方加入下面的 XAML 標記碼。
 
@@ -144,10 +144,10 @@
 1. 在 `MonkeyDetailsViewModel` 中設計 `IMap` 的欄位 `map`，並修改 `MonkeyDetailsViewModel` 的建構方法，透過建構式注入設定該 `map` 欄位：
 
     ```csharp
-    IMap map;
+    private readonly IMap _map;
     public MonkeyDetailsViewModel(IMap map)
     {
-        this.map = map;
+        _map = map;
     }
     ```
 
@@ -159,7 +159,7 @@
     {
         try
         {
-            await map.OpenAsync(Monkey.Latitude, Monkey.Longitude, new MapLaunchOptions
+            await _map.OpenAsync(Monkey.Latitude, Monkey.Longitude, new MapLaunchOptions
             {
                 Name = Monkey.Name,
                 NavigationMode = NavigationMode.None
@@ -174,7 +174,7 @@
 
     ```
 
-### 調整 DetailsPage.xaml 的使用者介面
+### 調整 MonkeyDetailsPage.xaml 的使用者介面
 
 在猴子的名稱的上方，增加一個 `OpenMapCommand` 的按鈕，找到當初設計的 `<Label>` 標記，並且在其上方加入如下 `Button` 的 XAML 標記碼。
 
@@ -195,7 +195,7 @@
 
 除了能使用跨各個平台設備的單一 API 進行操作外，在 .NET MAUI 的設計中還包含特定平台的程式庫。例如若使用帶有瀏海設計 (iPhone X 之後開始有的設計) 的 iOS 裝置上執行 Monkey Finder 應用程式時，可能已經發現底部的按鈕跟設備本身的 **Home Indicator** 重疊。所以在 iOS 的 UI 設計中有安全區域 (Safe Area) 的概念，正常來說畢續透過撰寫程式的方式設定。但可以透過 .NET MAUI 針對平台的特殊性設計，將可以直接在 XAML 中設定。
 
-1. 開啟 `MainPage.xaml` 並替 iOS 平台設定一個新的命名空間引用：
+1. 開啟 `MonkeysPage.xaml` 並替 iOS 平台設定一個新的命名空間引用：
 
     ```xml
     xmlns:ios="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific;assembly=Microsoft.Maui.Controls"

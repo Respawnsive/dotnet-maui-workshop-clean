@@ -3,10 +3,10 @@
 [QueryProperty(nameof(Monkey), "Monkey")]
 public partial class MonkeyDetailsViewModel : BaseViewModel
 {
-    IMap map;
+    private readonly IMap _map;
     public MonkeyDetailsViewModel(IMap map)
     {
-        this.map = map;
+        _map = map;
     }
 
     [ObservableProperty]
@@ -17,7 +17,7 @@ public partial class MonkeyDetailsViewModel : BaseViewModel
     {
         try
         {
-            await map.OpenAsync(Monkey.Latitude, Monkey.Longitude, new MapLaunchOptions
+            await _map.OpenAsync(Monkey.Latitude, Monkey.Longitude, new MapLaunchOptions
             {
                 Name = Monkey.Name,
                 NavigationMode = NavigationMode.None

@@ -9,14 +9,14 @@ We will use the built-in Shell navigation of .NET MAUI. This powerful navigation
 For example, let's say we wanted to navigate to a details page and pass in an identifier. 
 
 ```csharp
-await Shell.Current.GoToAsync("DetailsPage?name=james");
+await Shell.Current.GoToAsync("MonkeyDetailsPage?name=james");
 ```
 
 Then in our details page or view model we should define this property:
 
 ```csharp
 [QueryProperty(nameof(Name), "name")]
-public partial class DetailsPage : ContentPage
+public partial class MonkeyDetailsPage : ContentPage
 {
     string name;
     public string Name
@@ -31,7 +31,7 @@ When we navigate, the name "james" would be passed along automatically. We can a
 
 ```csharp
 var person = new Person { Name="James" };
-await Shell.Current.GoToAsync("DetailsPage", new Dictionary<string, object>
+await Shell.Current.GoToAsync("MonkeyDetailsPage", new Dictionary<string, object>
 {
     { "person", person }
 });
@@ -41,7 +41,7 @@ Then on our page or view model we would create the property.
 
 ```csharp
 [QueryProperty(nameof(Person), "person")]
-public partial class DetailsPage : ContentPage
+public partial class MonkeyDetailsPage : ContentPage
 {
     Person person;
     public Person Person
@@ -70,7 +70,7 @@ Now, let's add navigation to a second page that displays monkey details!
         if (monkey == null)
 	    return;
 
-        await Shell.Current.GoToAsync(nameof(DetailsPage), true, new Dictionary<string, object>
+        await Shell.Current.GoToAsync(nameof(MonkeyDetailsPage), true, new Dictionary<string, object>
         {
             {"Monkey", monkey }
         });
@@ -79,7 +79,7 @@ Now, let's add navigation to a second page that displays monkey details!
 
     - This code checks to see if the selected item is non-null and then uses the built in Shell `Navigation` API to push a new page with the monkey as a parameter and then deselects the item. 
 
-1. In `MainPage.xaml` we can add an `TapGestureRecognizer` event to the `Frame` of our monkey inside of the `CollectionView.ItemTemplate`:
+1. In `MonkeysPage.xaml` we can add an `TapGestureRecognizer` event to the `Frame` of our monkey inside of the `CollectionView.ItemTemplate`:
 
     Before:
 
@@ -183,31 +183,31 @@ Now that we have our details page in place, we need to register it for routing. 
 1. Open `AppShell.xaml.cs` code behind and add the following code into the constructor under the `InitializeComponent();` invoke:
 
     ```csharp
-    Routing.RegisterRoute(nameof(DetailsPage), typeof(DetailsPage));
+    Routing.RegisterRoute(nameof(MonkeyDetailsPage), typeof(MonkeyDetailsPage));
     ```
 
-    This will register the details page with the route of "DetailsPage", which we used earlier.
+    This will register the details page with the route of "MonkeyDetailsPage", which we used earlier.
 
 1. Open `MauiProgram.cs` and add both the view model and the page as `Transient` so a new page and view model is created each time it is navigated to:
 
     ```csharp
     builder.Services.AddTransient<MonkeyDetailsViewModel>();
-    builder.Services.AddTransient<DetailsPage>();
+    builder.Services.AddTransient<MonkeyDetailsPage>();
     ```
 
-1. Finally, we must inject the view model into our `DetailsPage`. Open the code behind for the page in `DetailsPage.xaml.cs` and change the constructor to the following:
+1. Finally, we must inject the view model into our `MonkeyDetailsPage`. Open the code behind for the page in `MonkeyDetailsPage.xaml.cs` and change the constructor to the following:
 
     ```csharp
-	public DetailsPage(MonkeyDetailsViewModel viewModel)
+	public MonkeyDetailsPage(MonkeyDetailsViewModel viewModel)
 	{
 		InitializeComponent();
 		BindingContext = viewModel;
 	}
     ```
 
-### Create DetailsPage.xaml UI
+### Create MonkeyDetailsPage.xaml UI
 
-Let's add UI to the DetailsPage. Our end goal is to get a fancy profile screen like this:
+Let's add UI to the MonkeyDetailsPage. Our end goal is to get a fancy profile screen like this:
 
 ![](../Art/Details.PNG)
 
@@ -218,7 +218,7 @@ Let's add UI to the DetailsPage. Our end goal is to get a fancy profile screen l
     <ContentPage
         xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
         xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-        x:Class="MonkeyFinder.DetailsPage"
+        x:Class="MonkeyFinder.MonkeyDetailsPage"
         xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
         x:DataType="viewmodel:MonkeyDetailsViewModel"
         Title="{Binding Monkey.Name}">

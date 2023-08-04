@@ -37,4 +37,10 @@
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="View\MonkeysPage.xaml.cs">
+	    <DependentUpon>MonkeysPage.xaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
 </Project>

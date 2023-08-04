@@ -64,9 +64,9 @@ internal sealed partial class MonkeyContext : JsonSerializerContext
 
 ### 顯示出資料
 
-接著將可以在 `MainPage.xaml` 的 `CollectionView` 當中顯示出經過特殊定義而對應類型的任何資料。所以只要透過設定 `ItemTemplate` 就能設置基本的控制項(如: Image、Label...等)，來建立使用者介面呈現資料。
+接著將可以在 `MonkeysPage.xaml` 的 `CollectionView` 當中顯示出經過特殊定義而對應類型的任何資料。所以只要透過設定 `ItemTemplate` 就能設置基本的控制項(如: Image、Label...等)，來建立使用者介面呈現資料。
 
-首先，找到在 `MainPage.xaml` 檔案一開始的 ContentPage 標記，並在該標記中多增加一個新的命名空間引用的撰寫：
+首先，找到在 `MonkeysPage.xaml` 檔案一開始的 ContentPage 標記，並在該標記中多增加一個新的命名空間引用的撰寫：
 
 ```xml
 xmlns:model="clr-namespace:MonkeyFinder.Model"
@@ -74,7 +74,7 @@ xmlns:model="clr-namespace:MonkeyFinder.Model"
 
 以便在後續的 XAML 撰寫可以使用到前一段所做好的 Monkey 類別，並且在也可以透過 Binding 來完成資料繫結。
 
-接著，將下面的 XAML 內容加到 MainPage.xaml 的 `ContentPage` 成對標記當中：
+接著，將下面的 XAML 內容加到 MonkeysPage.xaml 的 `ContentPage` 成對標記當中：
 
 ```xml
 <CollectionView>

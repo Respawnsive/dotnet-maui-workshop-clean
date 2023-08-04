@@ -180,10 +180,10 @@ public bool IsBusy
 1. 在 `MonkeyService.cs` 中，让我们添加一个新方法来获取所有猴子：
 
     ```csharp
-    List<Monkey> monkeyList = new ();
+    private List<Monkey> _monkeyList = new ();
     public async Task<List<Monkey>> GetMonkeys()
     {
-        return monkeyList;
+        return _monkeyList;
     }
     ```
 
@@ -192,14 +192,13 @@ public bool IsBusy
 2. 让我们通过添加到`MonkeyService`的构造函数中来访问`HttpClient`。
 
     ```csharp
-    var response = await httpClient.GetAsync("https://www.montemagno.com/monkeys.json");
+    var response = await _httpClient.GetAsync("https://www.montemagno.com/monkeys.json");
 
     if (response.IsSuccessStatusCode)
     {
-        monkeyList = await response.Content.ReadFromJsonAsync(MonkeyContext.Default.ListMonkey);
+        _monkeyList = await response.Content.ReadFromJsonAsync(MonkeyContext.Default.ListMonkey);
     }
     
-    return monkeyList;
     ```
 
     .NET MAUI 包括类似于 ASP.NET Core 的依赖注入。 我们将很快注册此服务和依赖项。
@@ -207,21 +206,20 @@ public bool IsBusy
 3. 让我们检查一下列表中是否有猴子，如果有，则通过填写 `GetMonkeys` 方法返回：
    
     ```csharp
-    if (monkeyList?.Count > 0)
-        return monkeyList;
+    if (_monkeyList?.Count > 0)
+        return _monkeyList;
     ```
 
 4. 我们可以使用 `HttpClient` 发出 Web 请求，并使用内置的 `System.Text.Json` 反序列化对其进行解析。
    
     ```csharp
-    var response = await httpClient.GetAsync("https://www.montemagno.com/monkeys.json");
+    var response = await _httpClient.GetAsync("https://www.montemagno.com/monkeys.json");
 
     if (response.IsSuccessStatusCode)
     {
-        monkeyList = await response.Content.ReadFromJsonAsync(MonkeyContext.Default.ListMonkey);
+        _monkeyList = await response.Content.ReadFromJsonAsync(MonkeyContext.Default.ListMonkey);
     }
     
-    return monkeyList;
     ```
 
 5. 别忘记在文件顶部添加以下 using 指令以访问 `ReadFromJsonAsync` 扩展方法：
@@ -238,7 +236,7 @@ public bool IsBusy
 using var stream = await FileSystem.OpenAppPackageFileAsync("monkeydata.json");
 using var reader = new StreamReader(stream);
 var contents = await reader.ReadToEndAsync();
-monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonkey);
+_monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonkey);
 ```
 
 ### 从 ViewModel 调用 MonkeyService
@@ -271,11 +269,11 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
    
     ```csharp
     public ObservableCollection<Monkey> Monkeys { get; } = new();
-    MonkeyService monkeyService;
+    private readonly MonkeyService _monkeyService;
     public MonkeysViewModel(MonkeyService monkeyService)
     {
         Title = "Monkey Finder";
-        this.monkeyService = monkeyService;
+        _monkeyService = monkeyService;
     }
     ```
 
@@ -339,7 +337,7 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
         {
             IsBusy = true;
 
-            var monkeys = await monkeyService.GetMonkeys();
+            var monkeys = await _monkeyService.GetMonkeys();
         }
         //... 
     }
@@ -355,7 +353,7 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
         {
             IsBusy = true;
 
-            var monkeys = await monkeyService.GetMonkeys();
+            var monkeys = await _monkeyService.GetMonkeys();
 
             if(Monkeys.Count != 0)
                 Monkeys.Clear();
@@ -393,7 +391,7 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
         try
         {
             IsBusy = true;
-            var monkeys = await monkeyService.GetMonkeys();
+            var monkeys = await _monkeyService.GetMonkeys();
 
             if(Monkeys.Count != 0)
                 Monkeys.Clear();
@@ -478,10 +476,10 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
 
 我们将 `MonkeyService` 和 `MonkeysViewModel` 注册为单例。 这意味着它们只会被创建一次，如果我们希望每个请求都创建一个唯一的实例，我们会将它们注册为“瞬态”。
 
-3. 在项目后面的代码中，我们将把我们的`MonkeysViewModel`注入到我们的 MainPage 中：
+3. 在项目后面的代码中，我们将把我们的`MonkeysViewModel`注入到我们的 MonkeysPage 中：
 
     ```csharp
-    public MainPage(MonkeysViewModel viewModel)
+    public MonkeysPage(MonkeysViewModel viewModel)
     {
 	InitializeComponent();
 	BindingContext = viewModel;
@@ -491,17 +489,17 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
 
 ## 创建用户界面 
 
-现在是时候在 `View/MainPage.xaml` 中构建 .NET MAUI 用户界面了。 我们的最终结果是构建一个如下所示的页面：
+现在是时候在 `View/MonkeysPage.xaml` 中构建 .NET MAUI 用户界面了。 我们的最终结果是构建一个如下所示的页面：
 
 ![](../Art/FinalUI.PNG)
 
-1. 在 `MainPage.xaml` 中，在 `ContentPage` 标记的顶部添加一个 `x:DataType`，这将使我们能够获得绑定智能感知：
+1. 在 `MonkeysPage.xaml` 中，在 `ContentPage` 标记的顶部添加一个 `x:DataType`，这将使我们能够获得绑定智能感知：
 
     ```xml
     <ContentPage
         xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
         xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
-        x:Class="MonkeyFinder.View.MainPage"
+        x:Class="MonkeyFinder.View.MonkeysPage"
         xmlns:model="clr-namespace:MonkeyFinder.Model"
         xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
         x:DataType="viewmodel:MonkeysViewModel">
@@ -517,7 +515,7 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="MonkeyFinder.View.MainPage"
+    x:Class="MonkeyFinder.View.MonkeysPage"
     xmlns:model="clr-namespace:MonkeyFinder.Model"
     xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
     x:DataType="viewmodel:MonkeysViewModel"
@@ -526,13 +524,13 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
 </ContentPage>
 ```
 
-3. 在 `MainPage.xaml` 中，我们可以在 `ContentPage` 标记之间添加一个 2 行 2 列的 `Grid`。 我们还将设置 `RowSpacing` 和 `ColumnSpacing` 
+3. 在 `MonkeysPage.xaml` 中，我们可以在 `ContentPage` 标记之间添加一个 2 行 2 列的 `Grid`。 我们还将设置 `RowSpacing` 和 `ColumnSpacing` 
 
 ```xml
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="MonkeyFinder.View.MainPage"
+    x:Class="MonkeyFinder.View.MonkeysPage"
     xmlns:model="clr-namespace:MonkeyFinder.Model"
     xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
     x:DataType="viewmodel:MonkeysViewModel"
@@ -548,13 +546,13 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
 </ContentPage>
 ```
 
-4. 在 `MainPage.xaml` 中，我们可以在 `Grid` 标记之间添加一个 `CollectionView`，跨越 2 列。 我们还将设置 `ItemsSource`，它将绑定到我们的 `Monkeys` ObservableCollection，并另外设置一些属性来优化列表。
+4. 在 `MonkeysPage.xaml` 中，我们可以在 `Grid` 标记之间添加一个 `CollectionView`，跨越 2 列。 我们还将设置 `ItemsSource`，它将绑定到我们的 `Monkeys` ObservableCollection，并另外设置一些属性来优化列表。
 
 ```xml
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="MonkeyFinder.View.MainPage"
+    x:Class="MonkeyFinder.View.MonkeysPage"
     xmlns:model="clr-namespace:MonkeyFinder.Model"
     xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
     x:DataType="viewmodel:MonkeysViewModel"
@@ -575,13 +573,13 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
 </ContentPage>
 ```
 
-5. 在 `MainPage.xaml` 中，我们可以向 `CollectionView` 添加一个 `ItemTemplate` 来表示列表中每个项目显示的内容：
+5. 在 `MonkeysPage.xaml` 中，我们可以向 `CollectionView` 添加一个 `ItemTemplate` 来表示列表中每个项目显示的内容：
    
 ```xml
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="MonkeyFinder.View.MainPage"
+    x:Class="MonkeyFinder.View.MonkeysPage"
     xmlns:model="clr-namespace:MonkeyFinder.Model"
     xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
     x:DataType="viewmodel:MonkeysViewModel"
@@ -620,13 +618,13 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
 </ContentPage>
 ```
 
-6. 在 `MainPage.xaml` 中，我们可以在 `CollectionView` 下添加一个 `Button`，这将使我们能够单击它并从服务器获取猴子：
+6. 在 `MonkeysPage.xaml` 中，我们可以在 `CollectionView` 下添加一个 `Button`，这将使我们能够单击它并从服务器获取猴子：
 
 ```xml
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="MonkeyFinder.View.MainPage"
+    x:Class="MonkeyFinder.View.MonkeysPage"
     xmlns:model="clr-namespace:MonkeyFinder.Model"
     xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
     x:DataType="viewmodel:MonkeysViewModel"
@@ -674,7 +672,7 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
 </ContentPage>
 ```
 
-7. 最后，在 `MainPage.xaml` 中，我们可以在最底部的所有控件或 `Grid` 上方添加一个 `ActivityIndicator`，当我们按下 `Get Monkeys` 按钮时，它将显示正在发生的事情的指示。
+7. 最后，在 `MonkeysPage.xaml` 中，我们可以在最底部的所有控件或 `Grid` 上方添加一个 `ActivityIndicator`，当我们按下 `Get Monkeys` 按钮时，它将显示正在发生的事情的指示。
 
 
 
@@ -682,7 +680,7 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="MonkeyFinder.View.MainPage"
+    x:Class="MonkeyFinder.View.MonkeysPage"
     xmlns:model="clr-namespace:MonkeyFinder.Model"
     xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
     x:DataType="viewmodel:MonkeysViewModel"

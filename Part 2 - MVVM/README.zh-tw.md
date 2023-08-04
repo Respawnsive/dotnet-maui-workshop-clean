@@ -180,42 +180,42 @@ public bool IsBusy
 1. 在 `MonkeyService.cs` 中，我們設計一個方法來表示取所有猴子資料：
 
     ```csharp
-    List<Monkey> monkeyList = new ();
+    private List<Monkey> _monkeyList = new ();
     public async Task<List<Monkey>> GetMonkeys()
     {
-        return monkeyList;
+        return _monkeyList;
     }
     ```
 
     目前撰寫的只是建立一個新的 Monkeys 集合 (用 `List<T>` 類別) 回傳。
 
-2. 在 `MonkeyService` 類別當中，來增加一個型態為 `HttpClient` 的欄位並將此欄位命名為 httpClient，接著在設計建構方法時，將該 **httpClient** 欄位設定一個 `HttpClient` 的物件。
+2. 在 `MonkeyService` 類別當中，來增加一個型態為 `HttpClient` 的欄位並將此欄位命名為 _httpClient，接著在設計建構方法時，將該 **_httpClient** 欄位設定一個 `HttpClient` 的物件。
 
     ```csharp
-    HttpClient httpClient;
+    private readonly HttpClient _httpClient;
     public MonkeyService()
     {
-        this.httpClient = new HttpClient();
+        _httpClient = new HttpClient();
     }
     ```
 
     .NET MAUI 的設計中有著類似於 ASP.NET Core 的 DI 設計，這將會在後面將很快地介紹到。
 
-3. 在投過 httpClient 發出請求前，檢查一下 monkeyList 的集合當中是否已有資料。如果有，則無需再發出網路請求，直接回傳 `return monkeyList` 即可：
+3. 在投過 _httpClient 發出請求前，檢查一下 _monkeyList 的集合當中是否已有資料。如果有，則無需再發出網路請求，直接回傳 `return _monkeyList` 即可：
    
     ```csharp
-    if (monkeyList?.Count > 0)
-        return monkeyList;
+    if (_monkeyList?.Count > 0)
+        return _monkeyList;
     ```
 
-4. 接著要繼續在 `GetMonkeys()` 方法當中使用 **httpClient** 發出請求，來取得網際網路中以 json 格式表示的猴子資料，再透過 `HttpClient` 這個類別所設計的 `GetAsync()` 方法發出網路請求後，接著使用在繼續使用 .NET 6 Library 內建的 `System.Text.Json` 來進行反序列化的處理。請將下列程式碼插入至 `return monkeyList` 之前。
+4. 接著要繼續在 `GetMonkeys()` 方法當中使用 **_httpClient** 發出請求，來取得網際網路中以 json 格式表示的猴子資料，再透過 `HttpClient` 這個類別所設計的 `GetAsync()` 方法發出網路請求後，接著使用在繼續使用 .NET 6 Library 內建的 `System.Text.Json` 來進行反序列化的處理。請將下列程式碼插入至 `return _monkeyList` 之前。
 
     ```csharp
-    var response = await httpClient.GetAsync("https://www.montemagno.com/monkeys.json");
+    var response = await _httpClient.GetAsync("https://www.montemagno.com/monkeys.json");
 
     if (response.IsSuccessStatusCode)
     {
-        monkeyList = await response.Content.ReadFromJsonAsync(MonkeyContext.Default.ListMonkey);
+        _monkeyList = await response.Content.ReadFromJsonAsync(MonkeyContext.Default.ListMonkey);
     }
     ```
 
@@ -233,7 +233,7 @@ public bool IsBusy
 using var stream = await FileSystem.OpenAppPackageFileAsync("monkeydata.json");
 using var reader = new StreamReader(stream);
 var contents = await reader.ReadToEndAsync();
-monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonkey);
+_monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonkey);
 ```
 
 ### 從 ViewModel 使用 MonkeyService
@@ -265,11 +265,11 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
    
     ```csharp
     public ObservableCollection<Monkey> Monkeys { get; } = new();
-    MonkeyService monkeyService;
+    private readonly MonkeyService _monkeyService;
     public MonkeysViewModel(MonkeyService monkeyService)
     {
         Title = "Monkey Finder";
-        this.monkeyService = monkeyService;
+        _monkeyService = monkeyService;
     }
     ```
 
@@ -332,7 +332,7 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
         {
             IsBusy = true;
 
-            var monkeys = await monkeyService.GetMonkeys();
+            var monkeys = await _monkeyService.GetMonkeys();
         }
         //... 
     }
@@ -348,7 +348,7 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
         {
             IsBusy = true;
 
-            var monkeys = await monkeyService.GetMonkeys();
+            var monkeys = await _monkeyService.GetMonkeys();
 
             if(Monkeys.Count != 0)
                 Monkeys.Clear();
@@ -386,7 +386,7 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
         try
         {
             IsBusy = true;
-            var monkeys = await monkeyService.GetMonkeys();
+            var monkeys = await _monkeyService.GetMonkeys();
 
             if(Monkeys.Count != 0)
                 Monkeys.Clear();
@@ -462,7 +462,7 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
 	using MonkeyFinder.Services;
 	```
 
-2. 找到在 `builder.Services` 中先前註冊 `MainPage` 的地方，並在其上方增加下列程式碼：
+2. 找到在 `builder.Services` 中先前註冊 `MonkeysPage` 的地方，並在其上方增加下列程式碼：
    
    	```csharp
 	builder.Services.AddSingleton<MonkeyService>();
@@ -471,10 +471,10 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
 
 在這邊是將 `MonkeyService` 和 `MonkeysViewModel` 註冊為 **Singleton**，這將意味著他們都在整個應用程式中都只會被建立一次執行個體來執行。如果希望每次請求會變成獨立的執行個體來執行，是可以透過 AddTransient 的方式將他們註冊為 **Transient**。
 
-3. 在 MainPage 對應的後置程式碼當中，則將 `MonkeysViewModel` 透過建構式注入的方式，把此 MonkeysViewModel 的物件設定到 MainPage 的 BindingContext 屬性當中：
+3. 在 MonkeysPage 對應的後置程式碼當中，則將 `MonkeysViewModel` 透過建構式注入的方式，把此 MonkeysViewModel 的物件設定到 MonkeysPage 的 BindingContext 屬性當中：
 
     ```csharp
-    public MainPage(MonkeysViewModel viewModel)
+    public MonkeysPage(MonkeysViewModel viewModel)
     {
 	InitializeComponent();
 	BindingContext = viewModel;
@@ -484,17 +484,17 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
 
 ## 建立使用者介面
 
-到這邊要進入 `View/MainPage.xaml` 中來撰寫 .NET MAUI 使用者介面了。最終的結果會是建立出如下所示的畫面效果：
+到這邊要進入 `View/MonkeysPage.xaml` 中來撰寫 .NET MAUI 使用者介面了。最終的結果會是建立出如下所示的畫面效果：
 
 ![](../Art/FinalUI.PNG)
 
-1. 開啟 `MainPage.xaml` 後，找到 `ContentPage` 標記後在其中加入 `x:DataType` 並設定其值為 `viewmodel:MonkeysViewModel`，這將能取得資料繫結的自動通知能力：
+1. 開啟 `MonkeysPage.xaml` 後，找到 `ContentPage` 標記後在其中加入 `x:DataType` 並設定其值為 `viewmodel:MonkeysViewModel`，這將能取得資料繫結的自動通知能力：
 
     ```xml
     <ContentPage
         xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
         xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
-        x:Class="MonkeyFinder.View.MainPage"
+        x:Class="MonkeyFinder.View.MonkeysPage"
         xmlns:model="clr-namespace:MonkeyFinder.Model"
         xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
         x:DataType="viewmodel:MonkeysViewModel">
@@ -510,7 +510,7 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="MonkeyFinder.View.MainPage"
+    x:Class="MonkeyFinder.View.MonkeysPage"
     xmlns:model="clr-namespace:MonkeyFinder.Model"
     xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
     x:DataType="viewmodel:MonkeysViewModel"
@@ -519,13 +519,13 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
 </ContentPage>
 ```
 
-3. 繼續在 `MainPage.xaml` 中，在 `ContentPage` 標記當中撰寫一個將版面規劃成 2 欄 2 列的 `Grid` 版型設計控制項，並設定其 `RowSpacing` 為 0 和 `ColumnSpacing` 為 5
+3. 繼續在 `MonkeysPage.xaml` 中，在 `ContentPage` 標記當中撰寫一個將版面規劃成 2 欄 2 列的 `Grid` 版型設計控制項，並設定其 `RowSpacing` 為 0 和 `ColumnSpacing` 為 5
 
 ```xml
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="MonkeyFinder.View.MainPage"
+    x:Class="MonkeyFinder.View.MonkeysPage"
     xmlns:model="clr-namespace:MonkeyFinder.Model"
     xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
     x:DataType="viewmodel:MonkeysViewModel"
@@ -541,13 +541,13 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
 </ContentPage>
 ```
 
-4. 持續在 `MainPage.xaml` 當中，並在 `Grid` 標記當中增加一個 `CollectionView` 的資料集合呈現控制項，將其設定為跨 `Grid` 的 2 欄，並設置其 `ItemsSource` 為绑定到 `Monkeys` 這個 ObservableCollection 集合物件，另外再設定 `SelectionMode` 屬性值為 `None`，將 CollectionView 的項目被點選時無反應的效果。
+4. 持續在 `MonkeysPage.xaml` 當中，並在 `Grid` 標記當中增加一個 `CollectionView` 的資料集合呈現控制項，將其設定為跨 `Grid` 的 2 欄，並設置其 `ItemsSource` 為绑定到 `Monkeys` 這個 ObservableCollection 集合物件，另外再設定 `SelectionMode` 屬性值為 `None`，將 CollectionView 的項目被點選時無反應的效果。
 
 ```xml
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="MonkeyFinder.View.MainPage"
+    x:Class="MonkeyFinder.View.MonkeysPage"
     xmlns:model="clr-namespace:MonkeyFinder.Model"
     xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
     x:DataType="viewmodel:MonkeysViewModel"
@@ -568,13 +568,13 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
 </ContentPage>
 ```
 
-5. 繼續在 `MainPage.xaml` 當中，幫 `CollectionView` 增加一個 `ItemTemplate` 的設計，以呈現這個 CollectionView 當中每個項目要展示的內容：
+5. 繼續在 `MonkeysPage.xaml` 當中，幫 `CollectionView` 增加一個 `ItemTemplate` 的設計，以呈現這個 CollectionView 當中每個項目要展示的內容：
    
 ```xml
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="MonkeyFinder.View.MainPage"
+    x:Class="MonkeyFinder.View.MonkeysPage"
     xmlns:model="clr-namespace:MonkeyFinder.Model"
     xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
     x:DataType="viewmodel:MonkeysViewModel"
@@ -613,13 +613,13 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
 </ContentPage>
 ```
 
-6. 維持在 `MainPage.xaml` 當中，在 `CollectionView` 的標記下方增加一個 `Button`，再設定一些配合 `Grid` 的版型設定的屬性值，透過這個 `Button` 的點選操作，就可以從前面所設計的 `MonkeyService` 取得猴子資料：
+6. 維持在 `MonkeysPage.xaml` 當中，在 `CollectionView` 的標記下方增加一個 `Button`，再設定一些配合 `Grid` 的版型設定的屬性值，透過這個 `Button` 的點選操作，就可以從前面所設計的 `MonkeyService` 取得猴子資料：
 
 ```xml
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="MonkeyFinder.View.MainPage"
+    x:Class="MonkeyFinder.View.MonkeysPage"
     xmlns:model="clr-namespace:MonkeyFinder.Model"
     xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
     x:DataType="viewmodel:MonkeysViewModel"
@@ -667,13 +667,13 @@ monkeyList = JsonSerializer.Deserialize(contents, MonkeyContext.Default.ListMonk
 </ContentPage>
 ```
 
-7. 最後在 `MainPage.xaml` 中，在 `Button` 標記的下方再增加一個 `ActivityIndicator` 標記(仍在 `Grid` 標記中)，並且設定一些配合 `Grid` 的版型設定的屬性值，而透過點選 **Get Monkeys** 的按鈕時，這個 `ActivityIndicator` 這個 UI 控制項將會發生運作中的指示讓使用者知道。
+7. 最後在 `MonkeysPage.xaml` 中，在 `Button` 標記的下方再增加一個 `ActivityIndicator` 標記(仍在 `Grid` 標記中)，並且設定一些配合 `Grid` 的版型設定的屬性值，而透過點選 **Get Monkeys** 的按鈕時，這個 `ActivityIndicator` 這個 UI 控制項將會發生運作中的指示讓使用者知道。
 
 ```xml
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="MonkeyFinder.View.MainPage"
+    x:Class="MonkeyFinder.View.MonkeysPage"
     xmlns:model="clr-namespace:MonkeyFinder.Model"
     xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
     x:DataType="viewmodel:MonkeysViewModel"

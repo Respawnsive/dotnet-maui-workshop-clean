@@ -7,14 +7,14 @@
 例如，假設我們想要巡覽到新頁面呈現猴子的詳細資訊時，可以在 URI 直接帶入一個 QueryString 的字串值。
 
 ```csharp
-await Shell.Current.GoToAsync("DetailsPage?name=james");
+await Shell.Current.GoToAsync("MonkeyDetailsPage?name=james");
 ```
 
 接著在呈現猴子的詳細資訊頁面 (Page) 或是其對應的 ViewModel 設計當中，可以在其類別掛上 `[QueryProperty]` 並設計其對應的属性動作 (其下以 Page 的類別設計為例)：
 
 ```csharp
 [QueryProperty(nameof(Name), "name")]
-public partial class DetailsPage : ContentPage
+public partial class MonkeyDetailsPage : ContentPage
 {
     string name;
     public string Name
@@ -29,7 +29,7 @@ public partial class DetailsPage : ContentPage
 
 ```csharp
 var person = new Person { Name="James" };
-await Shell.Current.GoToAsync("DetailsPage", new Dictionary<string, object>
+await Shell.Current.GoToAsync("MonkeyDetailsPage", new Dictionary<string, object>
 {
     { "person", person }
 });
@@ -39,7 +39,7 @@ await Shell.Current.GoToAsync("DetailsPage", new Dictionary<string, object>
 
 ```csharp
 [QueryProperty(nameof(Person), "person")]
-public partial class DetailsPage : ContentPage
+public partial class MonkeyDetailsPage : ContentPage
 {
     Person person;
     public Person Person
@@ -67,7 +67,7 @@ public partial class DetailsPage : ContentPage
         if (monkey == null)
 	    return;
 
-        await Shell.Current.GoToAsync(nameof(DetailsPage), true, new Dictionary<string, object>
+        await Shell.Current.GoToAsync(nameof(MonkeyDetailsPage), true, new Dictionary<string, object>
         {
             {"Monkey", monkey }
         });
@@ -76,7 +76,7 @@ public partial class DetailsPage : ContentPage
 
     - 此方法中一開始先檢查參數所得到的資料是否為空值，若不是空值才透過 Shell 內建用以 `Navigation` 的 `GoToAsync()` 方法，並將帶入的猴子資料為呼叫方法的引數資料，來轉跳進入詳細頁面。
 
-2. 在 `MainPage.xaml` 當中，找到 `CollectionView.ItemTemplate` 有關設置 `Frame` 的部分，並增加中 `TapGestureRecognizer` 的事件：
+2. 在 `MonkeysPage.xaml` 當中，找到 `CollectionView.ItemTemplate` 有關設置 `Frame` 的部分，並增加中 `TapGestureRecognizer` 的事件：
 
     增加前:  
 
@@ -178,31 +178,31 @@ public partial class DetailsPage : ContentPage
 1. 開啟 `AppShell.xaml.cs` 這個檔案，找到在其 AppShell 類別的建構方法當中的 `InitializeComponent();` 程式碼，並在其下加入下列程式碼：
 
     ```csharp
-    Routing.RegisterRoute(nameof(DetailsPage), typeof(DetailsPage));
+    Routing.RegisterRoute(nameof(MonkeyDetailsPage), typeof(MonkeyDetailsPage));
     ```
-    這將能讓 `DetailsPage` 這個頁面註冊為 **DetailPage** 的路由資訊。
+    這將能讓 `MonkeyDetailsPage` 這個頁面註冊為 **DetailPage** 的路由資訊。
 
 2. 開啟 `MauiProgram.cs` 並將 DetailPage 與其 ViewModel 透過 `AddTransient<T>()` 加入服務中，這將會讓每次巡覽到 DetailPage 時會建立一個新的 Page 與 ViewModel 物件：
 
     ```csharp
     builder.Services.AddTransient<MonkeyDetailsViewModel>();
-    builder.Services.AddTransient<DetailsPage>();
+    builder.Services.AddTransient<MonkeyDetailsPage>();
     ```
 
-3. 最後，開啟 `DetailsPage.xaml.cs` 這個 DetailPage.xaml 所對應的後置程式碼檔案，並將 DetailPage 的建構方法改為如下內容：
+3. 最後，開啟 `MonkeyDetailsPage.xaml.cs` 這個 DetailPage.xaml 所對應的後置程式碼檔案，並將 DetailPage 的建構方法改為如下內容：
 
     ```csharp
-	public DetailsPage(MonkeyDetailsViewModel viewModel)
+	public MonkeyDetailsPage(MonkeyDetailsViewModel viewModel)
 	{
 		InitializeComponent();
 		BindingContext = viewModel;
 	}
     ```
-    這將 ViewModel 透過建構式注入到 `DetailsPage` 中。  
+    這將 ViewModel 透過建構式注入到 `MonkeyDetailsPage` 中。  
     
-### 幫 DetailsPage.xaml 建立使用者介面
+### 幫 MonkeyDetailsPage.xaml 建立使用者介面
 
-將下列變更加入到 DetailsPage 中。最終希望呈現出如下的精美介面來展示猴子的詳細資料：
+將下列變更加入到 MonkeyDetailsPage 中。最終希望呈現出如下的精美介面來展示猴子的詳細資料：
 
 ![](../Art/Details.PNG)
 
@@ -212,7 +212,7 @@ public partial class DetailsPage : ContentPage
     <ContentPage
         xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
         xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-        x:Class="MonkeyFinder.DetailsPage"
+        x:Class="MonkeyFinder.MonkeyDetailsPage"
         xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
         x:DataType="viewmodel:MonkeyDetailsViewModel"
         Title="{Binding Monkey.Name}">

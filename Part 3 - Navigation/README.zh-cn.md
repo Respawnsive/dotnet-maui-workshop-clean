@@ -7,14 +7,14 @@
 例如，假设我们想要导航到详细信息页面并传入一个标识符。
 
 ```csharp
-await Shell.Current.GoToAsync("DetailsPage?name=james");
+await Shell.Current.GoToAsync("MonkeyDetailsPage?name=james");
 ```
 
 然后在我们的详细信息页面或视图模型中，我们应该定义这个属性：
 
 ```csharp
 [QueryProperty(nameof(Name), "name")]
-public partial class DetailsPage : ContentPage
+public partial class MonkeyDetailsPage : ContentPage
 {
     string name;
     public string Name
@@ -29,7 +29,7 @@ public partial class DetailsPage : ContentPage
 
 ```csharp
 var person = new Person { Name="James" };
-await Shell.Current.GoToAsync("DetailsPage", new Dictionary<string, object>
+await Shell.Current.GoToAsync("MonkeyDetailsPage", new Dictionary<string, object>
 {
     { "person", person }
 });
@@ -39,7 +39,7 @@ await Shell.Current.GoToAsync("DetailsPage", new Dictionary<string, object>
 
 ```csharp
 [QueryProperty(nameof(Person), "person")]
-public partial class DetailsPage : ContentPage
+public partial class MonkeyDetailsPage : ContentPage
 {
     Person person;
     public Person Person
@@ -67,7 +67,7 @@ public partial class DetailsPage : ContentPage
         if (monkey == null)
 	    return;
 
-        await Shell.Current.GoToAsync(nameof(DetailsPage), true, new Dictionary<string, object>
+        await Shell.Current.GoToAsync(nameof(MonkeyDetailsPage), true, new Dictionary<string, object>
         {
             {"Monkey", monkey }
         });
@@ -76,7 +76,7 @@ public partial class DetailsPage : ContentPage
 
     - 此代码检查所选项目是否为非空，并使用内置的 Shell `Navigation` API 以猴子为参数推送新页面，然后取消选择该项目。
 
-2. 在 `MainPage.xaml` 中，我们可以在 `CollectionView.ItemTemplate` 内的猴子的 `Frame` 中添加 `TapGestureRecognizer` 事件：
+2. 在 `MonkeysPage.xaml` 中，我们可以在 `CollectionView.ItemTemplate` 内的猴子的 `Frame` 中添加 `TapGestureRecognizer` 事件：
 
     之前:
 
@@ -178,30 +178,30 @@ public partial class DetailsPage : ContentPage
 1、打开后面的`AppShell.xaml.cs`代码，在`InitializeComponent();`调用下的构造函数中加入如下代码：
 
     ```csharp
-    Routing.RegisterRoute(nameof(DetailsPage), typeof(DetailsPage));
+    Routing.RegisterRoute(nameof(MonkeyDetailsPage), typeof(MonkeyDetailsPage));
     ```
-    这将使用我们之前使用的“DetailsPage”路由注册详细信息页面。
+    这将使用我们之前使用的“MonkeyDetailsPage”路由注册详细信息页面。
 
 2. 打开“MauiProgram.cs”并将视图模型和页面都添加为“Transient”，这样每次导航到时都会创建一个新的页面和视图模型：
 
     ```csharp
     builder.Services.AddTransient<MonkeyDetailsViewModel>();
-    builder.Services.AddTransient<DetailsPage>();
+    builder.Services.AddTransient<MonkeyDetailsPage>();
     ```
 
-3. 最后，我们必须将视图模型注入到我们的 `DetailsPage` 中。 在 `DetailsPage.xaml.cs` 中打开页面背后的代码，并将构造函数更改为以下内容：
+3. 最后，我们必须将视图模型注入到我们的 `MonkeyDetailsPage` 中。 在 `MonkeyDetailsPage.xaml.cs` 中打开页面背后的代码，并将构造函数更改为以下内容：
 
     ```csharp
-	public DetailsPage(MonkeyDetailsViewModel viewModel)
+	public MonkeyDetailsPage(MonkeyDetailsViewModel viewModel)
 	{
 		InitializeComponent();
 		BindingContext = viewModel;
 	}
     ```
 
-### 为 DetailsPage.xaml 创建 UI
+### 为 MonkeyDetailsPage.xaml 创建 UI
 
-让我们将 UI 添加到 DetailsPage。 我们的最终目标是获得这样一个精美的详细资料展示的界面：
+让我们将 UI 添加到 MonkeyDetailsPage。 我们的最终目标是获得这样一个精美的详细资料展示的界面：
 
 ![](../Art/Details.PNG)
 
@@ -211,7 +211,7 @@ public partial class DetailsPage : ContentPage
     <ContentPage
         xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
         xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-        x:Class="MonkeyFinder.DetailsPage"
+        x:Class="MonkeyFinder.MonkeyDetailsPage"
         xmlns:viewmodel="clr-namespace:MonkeyFinder.ViewModel"
         x:DataType="viewmodel:MonkeyDetailsViewModel"
         Title="{Binding Monkey.Name}">

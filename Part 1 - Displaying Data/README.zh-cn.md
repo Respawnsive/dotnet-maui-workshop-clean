@@ -58,9 +58,9 @@ internal sealed partial class MonkeyContext : JsonSerializerContext
 
 ### 显示数据
 
-我们可以在 `MainPage.xaml` 的 `CollectionView` 中显示任何数据类型的硬编码数据。 这将允许我们通过使用一些简单的图像和标签设置 `ItemTemplate` 来创建我们的用户界面。
+我们可以在 `MonkeysPage.xaml` 的 `CollectionView` 中显示任何数据类型的硬编码数据。 这将允许我们通过使用一些简单的图像和标签设置 `ItemTemplate` 来创建我们的用户界面。
 
-我们首先需要在 `MainPage.xaml` 的顶部添加一个新的命名空间：
+我们首先需要在 `MonkeysPage.xaml` 的顶部添加一个新的命名空间：
 
 ```xml
 xmlns:model="clr-namespace:MonkeyFinder.Model"
@@ -68,7 +68,7 @@ xmlns:model="clr-namespace:MonkeyFinder.Model"
 
 这将允许我们引用上面的 Monkey 类来进行数据绑定。
 
-将以下内容添加到 MainPage.xaml 的 `ContentPage` 中：
+将以下内容添加到 MonkeysPage.xaml 的 `ContentPage` 中：
 
 
 ```xml

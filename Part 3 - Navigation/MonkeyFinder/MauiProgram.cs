@@ -22,7 +22,7 @@ public static class MauiProgram
 
 		builder.Services.AddSingleton<MonkeyService>();
 		builder.Services.AddSingleton<MonkeysViewModel>();
-		builder.Services.AddSingleton<MainPage>();
+		builder.Services.AddSingleton<MonkeysPage>();
 
 		return builder.Build();
 	}

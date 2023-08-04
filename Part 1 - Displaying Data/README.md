@@ -62,9 +62,9 @@ internal sealed partial class MonkeyContext : JsonSerializerContext
 
 ### Displaying Data
 
-We can display hard coded data of any data type in a `CollectionView` in our `MainPage.xaml`. This will allow us to build out our user interface by setting the `ItemTemplate` with some simple images and labels. 
+We can display hard coded data of any data type in a `CollectionView` in our `MonkeysPage.xaml`. This will allow us to build out our user interface by setting the `ItemTemplate` with some simple images and labels. 
 
-We first need to add a new namespace at the top of the `MainPage.xaml`:
+We first need to add a new namespace at the top of the `MonkeysPage.xaml`:
 
 ```xml
 xmlns:model="clr-namespace:MonkeyFinder.Model"
@@ -72,7 +72,7 @@ xmlns:model="clr-namespace:MonkeyFinder.Model"
 
 This will allow us to reference the Monkey class above for data binding purposes.
 
-Add the following into the MainPage.xaml's `ContentPage`:
+Add the following into the MonkeysPage.xaml's `ContentPage`:
 
 ```xml
 <CollectionView>
