@@ -5,14 +5,12 @@ namespace MonkeyFinder.ViewModel;
 public partial class MonkeysViewModel : BaseViewModel
 {
     public ObservableCollection<Monkey> Monkeys { get; } = new();
-    private readonly MonkeyService _monkeyService;
-    private readonly IConnectivity _connectivity;
+    private readonly IMonkeyService _monkeyService;
     private readonly IGeolocation _geolocation;
-    public MonkeysViewModel(MonkeyService monkeyService, IConnectivity connectivity, IGeolocation geolocation)
+    public MonkeysViewModel(IMonkeyService monkeyService, IGeolocation geolocation)
     {
         Title = "Monkey Finder";
         _monkeyService = monkeyService;
-        _connectivity = connectivity;
         _geolocation = geolocation;
     }
     
@@ -37,35 +35,18 @@ public partial class MonkeysViewModel : BaseViewModel
         if (IsBusy)
             return;
 
-        try
-        {
-            if (_connectivity.NetworkAccess != NetworkAccess.Internet)
-            {
-                await Shell.Current.DisplayAlert("No connectivity!",
-                    $"Please check internet and try again.", "OK");
-                return;
-            }
-
-            IsBusy = true;
-            var monkeys = await _monkeyService.GetMonkeys();
-
-            if(Monkeys.Count != 0)
-                Monkeys.Clear();
-
-            foreach(var monkey in monkeys)
-                Monkeys.Add(monkey);
-
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Unable to get monkeys: {ex.Message}");
-            await Shell.Current.DisplayAlert("Error!", ex.Message, "OK");
-        }
-        finally
-        {
-            IsBusy = false;
-            IsRefreshing = false;
-        }
+        IsBusy = true;
+        
+        var monkeys = await _monkeyService.GetMonkeys();
+        
+        if(Monkeys.Count != 0)
+            Monkeys.Clear();
+        
+        foreach(var monkey in monkeys)
+            Monkeys.Add(monkey);
+        
+        IsBusy = false;
+        IsRefreshing = false;
 
     }
 
@@ -93,7 +74,7 @@ public partial class MonkeysViewModel : BaseViewModel
                 new Location(m.Latitude, m.Longitude), DistanceUnits.Miles))
                 .FirstOrDefault();
 
-            await Shell.Current.DisplayAlert("", first.Name + " " +
+            await Shell.Current.DisplayAlert("Closest monkey!", first.Name + " " +
                 first.Location, "OK");
 
         }

@@ -23,7 +23,8 @@ public static class MauiProgram
 		builder.Services.AddSingleton<IGeolocation>(Geolocation.Default);
 		builder.Services.AddSingleton<IMap>(Map.Default);
 
-		builder.Services.AddSingleton<MonkeyService>();
+		builder.Services.AddSingleton<IMonkeyService,MonkeyService>();
+
 		builder.Services.AddSingleton<MonkeysViewModel>();
 		builder.Services.AddSingleton<MonkeysPage>();
 
